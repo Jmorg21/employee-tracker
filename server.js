@@ -8,25 +8,26 @@ function start(){
 }
 
 function loadQuestions(){
-  inquirer
-  .prompt([
-    {
-      type: 'list',
-      name: 'userResponse',
-      message: 'What would you like to do?',
-      choices: [
-        'view all departments', 
-        'view all roles',
-        'view all employees', 
-        'add a department', 
-        'add a role', 
-        'add an employee',
-        'update an employee role', 
-        'Quit'
-      ]
-    },
-  ])
-  .then((answers) => {
+    inquirer
+    .prompt([
+      {
+        type: 'list',
+        name: 'userResponse',
+        message: 'What would you like to do?',
+        choices: [
+          'view all departments', 
+          'view all roles',
+          'view all employees', 
+          'add a department', 
+          'add a role', 
+          'add an employee', 
+          'Quit'
+        ]
+      },
+    ])
+
+.then((answers) => {
+    console.log(answers.userResponse)
   const userResponse = answers.userResponse;
 
     switch (userResponse) {
@@ -46,12 +47,13 @@ function loadQuestions(){
         addRole();
         break;
       case 'add an employee':
+        addEmployee();
         break;
       case 'update an employee role':
         updateRole();
         break;
-        default:
-          process.exit();
+      default:
+        process.exit();
     }
   })
 
@@ -76,31 +78,25 @@ function viewAllEmployees(){
 };
 
 function addDepartment(){
-  db.findAllDepartments().then(([depts])=>{
-
-    let dept = depts.map(({id, name})=>({
-      name: name,
-      value: id
-    }))
-
-  inquirer.prompt([
-    {
-      type: 'input',
-      name: 'name',
-      message: 'What is the name of the department?'
-    }
-  ]).then((answers)=>{
-    db.createNewDepartment(answers)
-    .then(()=> loadQuestions());
+  db.findAllDepartments().then(() => {
+    inquirer.prompt([
+      {
+        type: 'input',
+        name: 'name',
+        message: 'What is the name of the department?'
+      }
+    ]).then((answers) => {
+      db.createNewDepartment(answers)
+      .then(() => loadQuestions());
+    })
   })
-})
 };
 
 
 function addRole(){
-  db.findAllDepartments().then(([depts])=>{
+  db.findAllDepartments().then(([depts]) => {
 
-    let departments = depts.map(({id, name})=>({
+    let departments = depts.map(({id, name}) => ({
       name: name,
       value: id
     }))
@@ -122,15 +118,43 @@ function addRole(){
         message: "What department does the role belong to?",
         choices: departments
       }
-    ]).then((answers)=>{
+    ]).then((answers) => {
       db.createNewRole(answers)
+      .then(() => loadQuestions());
+    })
+  })
+};
+
+function addEmployee(){
+  db.findAllRoles().then(([roles]) => {
+
+    let roleChoices = roles.map(({id, title}) => ({
+      name: title,
+      value: id
+    }))
+
+    inquirer.prompt([
+      {
+        type: 'input',
+        name: 'first_name',
+        message: "What is the employee's first name?"
+      }, 
+      {
+        type:'input',
+        name: 'last_name',
+        message: "What is the employee's last name?"
+      }, 
+      {
+        type: 'list',
+        name: 'role_id',
+        message: "What is the employee's role?",
+        choices: roleChoices
+      },
+    ]).then((answers)=>{
+      db.createNewEmployee(answers)
       .then(()=> loadQuestions());
     })
   })
 };
 
-function updateRole(){
-
-};
-
-  start(); 
+  start();
